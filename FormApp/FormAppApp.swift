@@ -11,7 +11,9 @@ import SwiftUI
 struct FormAppApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            NavigationStack {
+                ContactFormView()
+            }
         }
     }
 }
