@@ -121,6 +121,7 @@ struct ContactFormView: View {
                 } label: {
                     Image(systemName: "checkmark")
                 }
+                .buttonStyle(.borderedProminent)
                 .accessibilityLabel("Save")
             }
         }

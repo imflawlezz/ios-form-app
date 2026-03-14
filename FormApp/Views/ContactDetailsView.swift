@@ -100,6 +100,7 @@ struct ContactDetailsView: View {
                 } label: {
                     Image(systemName: "trash")
                 }
+                .tint(.red)
             }
         }
     }
