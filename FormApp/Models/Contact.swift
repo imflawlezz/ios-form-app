@@ -77,6 +77,16 @@ struct Contact: Identifiable {
         return "\(formatter.string(from: birthdate)) (\(years) \(years == 1 ? "year" : "years"))"
     }
 
+    var fullAddress: String? {
+        let street = address.trimmingCharacters(in: .whitespacesAndNewlines)
+        let cityTrimmed = city.trimmingCharacters(in: .whitespacesAndNewlines)
+        let zipTrimmed = zip.trimmingCharacters(in: .whitespacesAndNewlines)
+        let parts = [street, cityTrimmed].filter { !$0.isEmpty }
+        let line = parts.joined(separator: ", ")
+        if line.isEmpty && zipTrimmed.isEmpty { return nil }
+        return zipTrimmed.isEmpty ? line : (line.isEmpty ? zipTrimmed : "\(line) \(zipTrimmed)")
+    }
+
     static func hasContent(_ string: String) -> Bool {
         !string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
