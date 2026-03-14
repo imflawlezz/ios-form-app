@@ -52,9 +52,9 @@ final class ContactStore: ObservableObject {
             ("Jack", "Thomas", .male, "jack@example.com", "+1 000 000 0000", "10 Cherry Pl", "Atlanta", "30301", "Photographer", false),
         ]
         let calendar = Calendar.current
-        let baseDate = calendar.date(byAdding: .year, value: -30, to: Date())!
+        let baseDate = calendar.date(byAdding: .year, value: -8, to: Date())!
         for (index, s) in samples.enumerated() {
-            let birthdate = calendar.date(byAdding: .year, value: -25 - index, to: baseDate)
+            let birthdate = calendar.date(byAdding: .year, value: -10 - index, to: baseDate)
             contacts.append(Contact(
                 firstName: s.0,
                 lastName: s.1,
