@@ -58,7 +58,7 @@ struct ContactDetailsView: View {
 
             if Contact.hasContent(contact.notes) {
                 Section("Notes") {
-                    HStack(alignment: .top, spacing: 12) {
+                    HStack(alignment: .center, spacing: 12) {
                         Image(systemName: "note.text")
                             .font(.body)
                             .foregroundStyle(.secondary)
