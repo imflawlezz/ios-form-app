@@ -14,7 +14,7 @@ struct FormAppApp: App {
     var body: some Scene {
         WindowGroup {
             NavigationStack {
-                ContactFormView()
+                ContactListView()
             }
             .environmentObject(store)
         }
