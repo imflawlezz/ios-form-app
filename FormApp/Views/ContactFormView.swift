@@ -24,6 +24,7 @@ struct ContactFormView: View {
     @State private var notes: String
     @State private var doNotify: Bool
     @State private var birthdate: Date
+    @State private var showValidationAlert = false
 
     init(contact: Contact? = nil) {
         self.contact = contact
@@ -46,9 +47,11 @@ struct ContactFormView: View {
                 TextField("First Name", text: $firstName)
                     .textContentType(.givenName)
                     .textInputAutocapitalization(.words)
+                    .submitLabel(.done)
                 TextField("Last Name", text: $lastName)
                     .textContentType(.familyName)
                     .textInputAutocapitalization(.words)
+                    .submitLabel(.done)
                 DatePicker("Birthdate", selection: $birthdate, displayedComponents: .date)
                 Picker("Gender", selection: $gender) {
                     ForEach(Gender.allCases) { g in
@@ -59,16 +62,21 @@ struct ContactFormView: View {
             Section("Contact Information") {
                 TextField("Email", text: $email)
                     .textContentType(.emailAddress)
+                    .submitLabel(.done)
                 TextField("Phone", text: $phone)
                     .textContentType(.telephoneNumber)
+                    .submitLabel(.done)
             }
             Section("Address") {
                 TextField("Address", text: $address)
                     .textContentType(.streetAddressLine1)
+                    .submitLabel(.done)
                 TextField("City", text: $city)
                     .textContentType(.addressCity)
+                    .submitLabel(.done)
                 TextField("Postal Code", text: $zip)
                     .textContentType(.postalCode)
+                    .submitLabel(.done)
             }
             Section("Notes and Notifications") {
                 TextField("Notes", text: $notes, axis: .vertical)
@@ -78,9 +86,18 @@ struct ContactFormView: View {
         }
         .navigationTitle(contact != nil ? "Edit contact" : "New contact")
         .navigationBarTitleDisplayMode(.inline)
+        .scrollDismissesKeyboard(.interactively)
+        .onSubmit { dismissKeyboard() }
+        .dismissKeyboardOnTap()
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
+                    let first = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
+                    let phoneTrimmed = phone.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard Contact.hasContent(first), Contact.hasContent(phoneTrimmed) else {
+                        showValidationAlert = true
+                        return
+                    }
                     let savedContact = Contact(
                         id: contact?.id ?? UUID(),
                         firstName: firstName,
@@ -106,6 +123,11 @@ struct ContactFormView: View {
                 }
                 .accessibilityLabel("Save")
             }
+        }
+        .alert("Missing required fields", isPresented: $showValidationAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("First name and phone are required.")
         }
     }
 }
