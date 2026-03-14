@@ -9,11 +9,14 @@ import SwiftUI
 
 @main
 struct FormAppApp: App {
+    @StateObject private var store = ContactStore()
+
     var body: some Scene {
         WindowGroup {
             NavigationStack {
                 ContactFormView()
             }
+            .environmentObject(store)
         }
     }
 }
