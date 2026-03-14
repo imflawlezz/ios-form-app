@@ -50,17 +50,9 @@ struct ContactDetailsView: View {
                 }
             }
 
-            if Contact.hasContent(contact.address) || Contact.hasContent(contact.city) || Contact.hasContent(contact.zip) {
+            if let fullAddress = contact.fullAddress {
                 Section("Address") {
-                    if Contact.hasContent(contact.address) {
-                        DetailRow(icon: "mappin.circle.fill", value: contact.address)
-                    }
-                    if Contact.hasContent(contact.city) {
-                        DetailRow(icon: "building.2.fill", value: contact.city)
-                    }
-                    if Contact.hasContent(contact.zip) {
-                        DetailRow(icon: "number", value: contact.zip)
-                    }
+                    DetailRow(icon: "building.2.fill", value: fullAddress)
                 }
             }
 
