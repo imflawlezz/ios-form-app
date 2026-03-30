@@ -19,7 +19,7 @@ struct ContactListView: View {
                         NavigationLink {
                             ContactDetailsView(contact: contact)
                         } label: {
-                            Text(contact.displayName)
+                            ContactListRowTitle(contact: contact)
                         }
                     }
                 } header: {
@@ -41,6 +41,9 @@ struct ContactListView: View {
                         Label("Add sample contacts", systemImage: "person.2.badge.plus")
                     }
                     Button(role: .destructive) {
+                        guard !store.contacts.isEmpty else {
+                            return
+                        }
                         showDeleteAllConfirmation = true
                     } label: {
                         Label("Delete all contacts", systemImage: "trash")
@@ -66,6 +69,25 @@ struct ContactListView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This cannot be undone.")
+        }
+    }
+}
+
+private struct ContactListRowTitle: View {
+    let contact: Contact
+
+    var body: some View {
+        let first = contact.firstName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let last = contact.lastName.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if first.isEmpty && last.isEmpty {
+            Text("Contact")
+        } else if last.isEmpty {
+            Text(first).fontWeight(.bold)
+        } else if first.isEmpty {
+            Text(last).fontWeight(.bold)
+        } else {
+            Text("\(first) ") + Text(last).fontWeight(.bold)
         }
     }
 }
