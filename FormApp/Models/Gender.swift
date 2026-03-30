@@ -3,4 +3,11 @@ enum Gender: String, CaseIterable, Identifiable {
     case female = "Female"
 
     var id: String { self.rawValue }
+
+    var symbolName: String {
+        switch self {
+        case .male: return "figure.stand"
+        case .female: return "figure.stand.dress"
+        }
+    }
 }
