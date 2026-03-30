@@ -12,6 +12,10 @@ import SwiftUI
 final class ContactStore: ObservableObject {
     @Published private(set) var contacts: [Contact] = []
 
+    func contact(withId id: UUID) -> Contact? {
+        contacts.first { $0.id == id }
+    }
+
     var sortedSections: [(letter: String, contacts: [Contact])] {
         let sorted = contacts.sorted { c1, c2 in
             let ln = c1.lastName.localizedCaseInsensitiveCompare(c2.lastName)

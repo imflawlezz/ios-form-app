@@ -90,4 +90,12 @@ struct Contact: Identifiable {
     static func hasContent(_ string: String) -> Bool {
         !string.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
+
+    var dialURL: URL? {
+        let trimmed = phone.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        let dialString = trimmed.filter { $0.isNumber || $0 == "+" }
+        guard !dialString.isEmpty else { return nil }
+        return URL(string: "tel:\(dialString)")
+    }
 }
