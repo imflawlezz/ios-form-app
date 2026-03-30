@@ -11,80 +11,87 @@ struct ContactFormView: View {
     @EnvironmentObject private var store: ContactStore
     @Environment(\.dismiss) private var dismiss
 
-    let contact: Contact?
-
-    @State private var firstName: String
-    @State private var lastName: String
-    @State private var gender: Gender
-    @State private var email: String
-    @State private var phone: String
-    @State private var address: String
-    @State private var city: String
-    @State private var zip: String
-    @State private var notes: String
-    @State private var doNotify: Bool
-    @State private var birthdate: Date
-    @State private var showValidationAlert = false
+    @StateObject private var viewModel: ContactFormViewModel
 
     init(contact: Contact? = nil) {
-        self.contact = contact
-        _firstName = State(initialValue: contact?.firstName ?? "")
-        _lastName = State(initialValue: contact?.lastName ?? "")
-        _gender = State(initialValue: contact?.gender ?? Gender.allCases.first!)
-        _email = State(initialValue: contact?.email ?? "")
-        _phone = State(initialValue: contact?.phone ?? "")
-        _address = State(initialValue: contact?.address ?? "")
-        _city = State(initialValue: contact?.city ?? "")
-        _zip = State(initialValue: contact?.zip ?? "")
-        _notes = State(initialValue: contact?.notes ?? "")
-        _doNotify = State(initialValue: contact?.doNotify ?? false)
-        _birthdate = State(initialValue: contact?.birthdate ?? Calendar.current.date(byAdding: .year, value: -25, to: Date()) ?? Date())
+        _viewModel = StateObject(wrappedValue: ContactFormViewModel(contact: contact))
     }
 
     var body: some View {
         Form {
             Section("Personal Information") {
-                TextField("First Name", text: $firstName)
+                TextField("First Name", text: $viewModel.firstName)
                     .textContentType(.givenName)
                     .textInputAutocapitalization(.words)
                     .submitLabel(.done)
-                TextField("Last Name", text: $lastName)
+                TextField("Last Name", text: $viewModel.lastName)
                     .textContentType(.familyName)
                     .textInputAutocapitalization(.words)
                     .submitLabel(.done)
-                DatePicker("Birthdate", selection: $birthdate, displayedComponents: .date)
-                Picker("Gender", selection: $gender) {
+                Picker("Gender", selection: $viewModel.gender) {
+                    Text("Not specified").tag(Optional<Gender>.none)
                     ForEach(Gender.allCases) { g in
-                        Text(g.rawValue).tag(g)
+                        Text(g.rawValue).tag(Optional(g))
+                    }
+                }
+                if viewModel.birthdate == nil {
+                    Button {
+                        viewModel.birthdate = Date()
+                    } label: {
+                        HStack {
+                            Image(systemName: "plus")
+                                .fontWeight(.semibold)
+                            Text("Add birthdate")
+                        }
+                    }
+                } else {
+                    HStack {
+                        DatePicker(
+                            "Birthdate",
+                            selection: Binding(
+                                get: { viewModel.birthdate ?? Date() },
+                                set: { viewModel.birthdate = $0 }
+                            ),
+                            displayedComponents: .date
+                        )
+                        Button {
+                            viewModel.birthdate = nil
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.title2)
+                                .foregroundStyle(.red)
+                        }
+                        .buttonStyle(.borderless)
+                        .accessibilityLabel("Remove birthdate")
                     }
                 }
             }
             Section("Contact Information") {
-                TextField("Email", text: $email)
-                    .textContentType(.emailAddress)
-                    .submitLabel(.done)
-                TextField("Phone", text: $phone)
+                TextField("Phone", text: $viewModel.phone)
                     .textContentType(.telephoneNumber)
+                    .submitLabel(.done)
+                TextField("Email", text: $viewModel.email)
+                    .textContentType(.emailAddress)
                     .submitLabel(.done)
             }
             Section("Address") {
-                TextField("Address", text: $address)
+                TextField("Address", text: $viewModel.address)
                     .textContentType(.streetAddressLine1)
                     .submitLabel(.done)
-                TextField("City", text: $city)
+                TextField("City", text: $viewModel.city)
                     .textContentType(.addressCity)
                     .submitLabel(.done)
-                TextField("Postal Code", text: $zip)
+                TextField("Postal Code", text: $viewModel.zip)
                     .textContentType(.postalCode)
                     .submitLabel(.done)
             }
             Section("Notes and Notifications") {
-                TextField("Notes", text: $notes, axis: .vertical)
+                TextField("Notes", text: $viewModel.notes, axis: .vertical)
                     .lineLimit(1...3)
-                Toggle("Receive notifications", isOn: $doNotify)
+                Toggle("Receive notifications", isOn: $viewModel.doNotify)
             }
         }
-        .navigationTitle(contact != nil ? "Edit contact" : "New contact")
+        .navigationTitle(viewModel.navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .scrollDismissesKeyboard(.interactively)
         .onSubmit { dismissKeyboard() }
@@ -92,32 +99,9 @@ struct ContactFormView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
-                    let first = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
-                    let phoneTrimmed = phone.trimmingCharacters(in: .whitespacesAndNewlines)
-                    guard Contact.hasContent(first), Contact.hasContent(phoneTrimmed) else {
-                        showValidationAlert = true
-                        return
+                    if viewModel.save(using: store) {
+                        dismiss()
                     }
-                    let savedContact = Contact(
-                        id: contact?.id ?? UUID(),
-                        firstName: firstName,
-                        lastName: lastName,
-                        birthdate: birthdate,
-                        gender: gender,
-                        email: email,
-                        phone: phone,
-                        address: address,
-                        city: city,
-                        zip: zip,
-                        notes: notes,
-                        doNotify: doNotify
-                    )
-                    if contact != nil {
-                        store.update(savedContact)
-                    } else {
-                        store.add(savedContact)
-                    }
-                    dismiss()
                 } label: {
                     Image(systemName: "checkmark")
                 }
@@ -125,7 +109,7 @@ struct ContactFormView: View {
                 .accessibilityLabel("Save")
             }
         }
-        .alert("Missing required fields", isPresented: $showValidationAlert) {
+        .alert("Missing required fields", isPresented: $viewModel.showValidationAlert) {
             Button("OK", role: .cancel) {}
         } message: {
             Text("First name and phone are required.")

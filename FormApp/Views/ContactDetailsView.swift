@@ -32,20 +32,24 @@ struct ContactDetailsView: View {
                 .listRowBackground(Color.clear)
             }
 
-            Section("About") {
-                DetailRow(icon: "person.fill", value: contact.gender.rawValue)
-                if let birthdateText = contact.birthdateFormattedWithAge {
-                    DetailRow(icon: "calendar", value: birthdateText)
+            if contact.gender != nil || contact.birthdate != nil {
+                Section("About") {
+                    if let gender = contact.gender {
+                        DetailRow(icon: "person.fill", value: gender.rawValue)
+                    }
+                    if let birthdateText = contact.birthdateFormattedWithAge {
+                        DetailRow(icon: "calendar", value: birthdateText)
+                    }
                 }
             }
 
             if Contact.hasContent(contact.email) || Contact.hasContent(contact.phone) {
                 Section("Contact") {
-                    if Contact.hasContent(contact.email) {
-                        DetailRow(icon: "envelope.fill", value: contact.email)
-                    }
                     if Contact.hasContent(contact.phone) {
                         DetailRow(icon: "phone.fill", value: contact.phone)
+                    }
+                    if Contact.hasContent(contact.email) {
+                        DetailRow(icon: "envelope.fill", value: contact.email)
                     }
                 }
             }

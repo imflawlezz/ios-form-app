@@ -7,7 +7,7 @@ struct Contact: Identifiable {
     var lastName: String
     var birthdate: Date?
 
-    var gender: Gender
+    var gender: Gender?
 
     var email: String
     var phone: String
@@ -25,7 +25,7 @@ struct Contact: Identifiable {
         firstName: String,
         lastName: String,
         birthdate: Date? = nil,
-        gender: Gender,
+        gender: Gender? = nil,
         email: String,
         phone: String,
         address: String,
