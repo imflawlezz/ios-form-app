@@ -6,11 +6,13 @@
 //
 
 import SwiftUI
-import UIKit
 
 struct ContactListView: View {
     @EnvironmentObject private var store: ContactStore
+    @Environment(\.openURL) private var openURL
     @State private var showDeleteAllConfirmation = false
+    @State private var contactPendingDeletion: Contact?
+    @State private var contactToEdit: Contact?
 
     var body: some View {
         Group {
@@ -22,9 +24,36 @@ struct ContactListView: View {
                         Section {
                             ForEach(section.contacts) { contact in
                                 NavigationLink {
-                                    ContactDetailsView(contact: contact)
+                                    ContactDetailsView(contactId: contact.id)
                                 } label: {
-                                    ContactListRowTitle(contact: contact)
+                                    ContactListRow(contact: contact)
+                                }
+                                .swipeActions(edge: .leading, allowsFullSwipe: contact.dialURL != nil) {
+                                    if let url = contact.dialURL {
+                                        Button {
+                                            openURL(url)
+                                        } label: {
+                                            Image(systemName: "phone.fill")
+                                        }
+                                        .tint(.green)
+                                        .accessibilityLabel("Call")
+                                    }
+                                }
+                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                    Button {
+                                        contactToEdit = contact
+                                    } label: {
+                                        Image(systemName: "pencil")
+                                    }
+                                    .tint(.indigo)
+                                    .accessibilityLabel("Edit")
+
+                                    Button(role: .destructive) {
+                                        contactPendingDeletion = contact
+                                    } label: {
+                                        Image(systemName: "trash")
+                                    }
+                                    .accessibilityLabel("Delete")
                                 }
                             }
                         } header: {
@@ -77,6 +106,36 @@ struct ContactListView: View {
         } message: {
             Text("This cannot be undone.")
         }
+        .confirmationDialog(
+            "Delete contact?",
+            isPresented: Binding(
+                get: { contactPendingDeletion != nil },
+                set: { if !$0 { contactPendingDeletion = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("Delete", role: .destructive) {
+                if let contact = contactPendingDeletion {
+                    store.remove(contact)
+                }
+                contactPendingDeletion = nil
+            }
+            Button("Cancel", role: .cancel) {
+                contactPendingDeletion = nil
+            }
+        } message: {
+            if let contact = contactPendingDeletion {
+                Text("Remove \(contact.displayName) from your contacts? This cannot be undone.")
+            } else {
+                Text("This contact will be removed. This cannot be undone.")
+            }
+        }
+        .sheet(item: $contactToEdit) { contact in
+            NavigationStack {
+                ContactFormView(contact: contact)
+                    .environmentObject(store)
+            }
+        }
     }
 }
 
@@ -128,6 +187,26 @@ private struct ContactListEmptyState: View {
     }
 }
 
+private struct ContactListRow: View {
+    let contact: Contact
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 12) {
+            ContactAvatarView(contact: contact, size: 44)
+            VStack(alignment: .leading, spacing: 2) {
+                ContactListRowTitle(contact: contact)
+                    .foregroundStyle(.primary)
+                Text(contact.phoneCaption)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .accessibilityElement(children: .combine)
+    }
+}
+
 private struct ContactListRowTitle: View {
     let contact: Contact
 
@@ -136,13 +215,16 @@ private struct ContactListRowTitle: View {
         let last = contact.lastName.trimmingCharacters(in: .whitespacesAndNewlines)
 
         if !first.isEmpty && !last.isEmpty {
-            Text("\(first) ") + Text(last).fontWeight(.bold)
+            HStack(alignment: .firstTextBaseline, spacing: 0) {
+                Text("\(first) ")
+                Text(last).fontWeight(.bold)
+            }
         } else if !last.isEmpty {
             Text(last).fontWeight(.bold)
         } else if !first.isEmpty {
             Text(first).fontWeight(.bold)
         } else {
-            Text(contact.phone.trimmingCharacters(in: .whitespacesAndNewlines))
+            Text(contact.phoneCaption)
                 .fontWeight(.bold)
         }
     }

@@ -10,32 +10,66 @@ import SwiftUI
 struct ContactDetailsView: View {
     @EnvironmentObject private var store: ContactStore
     @Environment(\.dismiss) private var dismiss
-    let contact: Contact
+    @Environment(\.openURL) private var openURL
+    @State private var showDeleteConfirmation = false
+    let contactId: UUID
+
+    private var contact: Contact? {
+        store.contact(withId: contactId)
+    }
 
     var body: some View {
+        Group {
+            if let contact {
+                detailsList(for: contact)
+            } else {
+                ContentUnavailableView("Contact not found", systemImage: "person.crop.circle.badge.xmark")
+                    .onAppear { dismiss() }
+            }
+        }
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    @ViewBuilder
+    private func detailsList(for contact: Contact) -> some View {
         List {
             Section {
                 VStack(spacing: 16) {
-                    ZStack {
-                        Circle()
-                            .fill(.secondary.opacity(0.25))
-                            .frame(width: 100, height: 100)
-                        Text(contact.initials)
-                            .font(.title.weight(.medium))
-                            .foregroundStyle(.secondary)
-                    }
+                    ContactAvatarView(contact: contact, size: 100)
+
                     Text(contact.displayName)
                         .font(.title2.weight(.semibold))
+                        .multilineTextAlignment(.center)
+
+                    if let url = contact.dialURL {
+                        Button {
+                            openURL(url)
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "phone.fill")
+                                Text("Call")
+                            }
+                            .font(.subheadline.weight(.semibold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 7)
+                            .padding(.horizontal, 12)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                        .tint(.green)
+                        .frame(maxWidth: .infinity)
+                        .accessibilityLabel("Call")
+                    }
                 }
                 .frame(maxWidth: .infinity)
-                .listRowInsets(EdgeInsets(top: 24, leading: 16, bottom: 24, trailing: 16))
+                .listRowInsets(EdgeInsets(top: 16, leading: 20, bottom: 16, trailing: 20))
                 .listRowBackground(Color.clear)
             }
 
             if contact.gender != nil || contact.birthdate != nil {
                 Section("About") {
                     if let gender = contact.gender {
-                        DetailRow(icon: "person.fill", value: gender.rawValue)
+                        DetailRow(icon: gender.symbolName, value: gender.rawValue)
                     }
                     if let birthdateText = contact.birthdateFormattedWithAge {
                         DetailRow(icon: "calendar", value: birthdateText)
@@ -87,8 +121,8 @@ struct ContactDetailsView: View {
             }
         }
         .listStyle(.insetGrouped)
+        .listSectionSpacing(12)
         .navigationTitle(contact.displayName)
-        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 NavigationLink {
@@ -99,13 +133,21 @@ struct ContactDetailsView: View {
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(role: .destructive) {
-                    store.remove(contact)
-                    dismiss()
+                    showDeleteConfirmation = true
                 } label: {
                     Image(systemName: "trash")
                 }
                 .tint(.red)
             }
+        }
+        .confirmationDialog("Delete contact?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
+            Button("Delete", role: .destructive) {
+                store.remove(contact)
+                dismiss()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Remove \(contact.displayName) from your contacts? This cannot be undone.")
         }
     }
 }
@@ -127,19 +169,23 @@ private struct DetailRow: View {
 }
 
 #Preview {
-    NavigationStack {
-        ContactDetailsView(contact: Contact(
-            firstName: "Jane",
-            lastName: "Doe",
-            birthdate: Calendar.current.date(byAdding: .year, value: -30, to: Date()),
-            gender: .female,
-            email: "jane@example.com",
-            phone: "+1 234 567 8900",
-            address: "123 Main St",
-            city: "New York",
-            zip: "10001",
-            notes: "Sample note"
-        ))
-        .environmentObject(ContactStore())
+    let store = ContactStore()
+    let sample = Contact(
+        firstName: "Jane",
+        lastName: "Doe",
+        birthdate: Calendar.current.date(byAdding: .year, value: -30, to: Date()),
+        gender: .female,
+        email: "jane@example.com",
+        phone: "+1 234 567 8900",
+        address: "123 Main St",
+        city: "New York",
+        zip: "10001",
+        notes: "Sample note"
+    )
+    store.add(sample)
+
+    return NavigationStack {
+        ContactDetailsView(contactId: sample.id)
+            .environmentObject(store)
     }
 }
