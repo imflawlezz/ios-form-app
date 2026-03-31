@@ -77,11 +77,12 @@ struct ContactListView: View {
                                             .tint(.indigo)
                                             .accessibilityLabel("Edit")
 
-                                            Button(role: .destructive) {
+                                            Button {
                                                 contactPendingDeletion = contact
                                             } label: {
                                                 Image(systemName: "trash")
                                             }
+                                            .tint(.red)
                                             .accessibilityLabel("Delete")
                                         }
                                     }
