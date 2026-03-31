@@ -12,6 +12,7 @@ struct ContactFormView: View {
     @Environment(\.dismiss) private var dismiss
 
     @StateObject private var viewModel: ContactFormViewModel
+    @FocusState private var focusedField: ContactFormTextField?
 
     init(contact: Contact? = nil) {
         _viewModel = StateObject(wrappedValue: ContactFormViewModel(contact: contact))
@@ -20,19 +21,23 @@ struct ContactFormView: View {
     var body: some View {
         Form {
             Section {
-                fieldBlock {
+                ContactFormFieldWithError(message: viewModel.visibleFirstNameError) {
                     TextField("First Name", text: $viewModel.firstName)
                         .textContentType(.givenName)
                         .textInputAutocapitalization(.words)
-                        .submitLabel(.done)
-                } error: { viewModel.visibleFirstNameError }
+                        .submitLabel(.next)
+                        .focused($focusedField, equals: .firstName)
+                        .onSubmit { ContactFormTextField.firstName.advance(focus: $focusedField) }
+                }
 
-                fieldBlock {
+                ContactFormFieldWithError(message: viewModel.visibleLastNameError) {
                     TextField("Last Name", text: $viewModel.lastName)
                         .textContentType(.familyName)
                         .textInputAutocapitalization(.words)
-                        .submitLabel(.done)
-                } error: { viewModel.visibleLastNameError }
+                        .submitLabel(.next)
+                        .focused($focusedField, equals: .lastName)
+                        .onSubmit { ContactFormTextField.lastName.advance(focus: $focusedField) }
+                }
 
                 Picker("Gender", selection: $viewModel.gender) {
                     Text("Not specified").tag(Optional<Gender>.none)
@@ -51,7 +56,7 @@ struct ContactFormView: View {
                         }
                     }
                 } else {
-                    VStack(alignment: .leading, spacing: 4) {
+                    ContactFormFieldWithError(message: viewModel.visibleBirthdateError) {
                         HStack {
                             DatePicker(
                                 "Birthdate",
@@ -71,55 +76,63 @@ struct ContactFormView: View {
                             .buttonStyle(.borderless)
                             .accessibilityLabel("Remove birthdate")
                         }
-                        InlineFieldError(message: viewModel.visibleBirthdateError)
                     }
                 }
             } header: {
                 Text("Personal Information")
             }
             Section {
-                fieldBlock {
+                ContactFormFieldWithError(message: viewModel.visiblePhoneError) {
                     TextField("Phone", text: $viewModel.phone)
                         .textContentType(.telephoneNumber)
                         .keyboardType(.phonePad)
-                        .submitLabel(.done)
-                } error: { viewModel.visiblePhoneError }
+                        .focused($focusedField, equals: .phone)
+                }
 
-                fieldBlock {
+                ContactFormFieldWithError(message: viewModel.visibleEmailError) {
                     TextField("Email", text: $viewModel.email)
                         .textContentType(.emailAddress)
                         .keyboardType(.emailAddress)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
-                        .submitLabel(.done)
-                } error: { viewModel.visibleEmailError }
+                        .submitLabel(.next)
+                        .focused($focusedField, equals: .email)
+                        .onSubmit { ContactFormTextField.email.advance(focus: $focusedField) }
+                }
             } header: {
                 Text("Contact Information")
             }
             Section("Address") {
-                fieldBlock {
+                ContactFormFieldWithError(message: viewModel.visibleAddressError) {
                     TextField("Address", text: $viewModel.address)
                         .textContentType(.streetAddressLine1)
-                        .submitLabel(.done)
-                } error: { viewModel.visibleAddressError }
+                        .submitLabel(.next)
+                        .focused($focusedField, equals: .address)
+                        .onSubmit { ContactFormTextField.address.advance(focus: $focusedField) }
+                }
 
-                fieldBlock {
+                ContactFormFieldWithError(message: viewModel.visibleCityError) {
                     TextField("City", text: $viewModel.city)
                         .textContentType(.addressCity)
-                        .submitLabel(.done)
-                } error: { viewModel.visibleCityError }
+                        .submitLabel(.next)
+                        .focused($focusedField, equals: .city)
+                        .onSubmit { ContactFormTextField.city.advance(focus: $focusedField) }
+                }
 
-                fieldBlock {
+                ContactFormFieldWithError(message: viewModel.visibleZipError) {
                     TextField("Postal Code", text: $viewModel.zip)
                         .textContentType(.postalCode)
-                        .submitLabel(.done)
-                } error: { viewModel.visibleZipError }
+                        .submitLabel(.next)
+                        .focused($focusedField, equals: .zip)
+                        .onSubmit { ContactFormTextField.zip.advance(focus: $focusedField) }
+                }
             }
             Section {
-                fieldBlock {
+                ContactFormFieldWithError(message: viewModel.visibleNotesError) {
                     TextField("Notes", text: $viewModel.notes, axis: .vertical)
                         .lineLimit(1...3)
-                } error: { viewModel.visibleNotesError }
+                        .focused($focusedField, equals: .notes)
+                }
 
                 Toggle("Receive notifications", isOn: $viewModel.doNotify)
             } header: {
@@ -129,7 +142,6 @@ struct ContactFormView: View {
         .navigationTitle(viewModel.navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .scrollDismissesKeyboard(.interactively)
-        .onSubmit { dismissKeyboard() }
         .dismissKeyboardOnTap()
         .onChange(of: viewModel.firstName) { _, _ in
             viewModel.noteFirstNameChanged()
@@ -149,30 +161,6 @@ struct ContactFormView: View {
                 .buttonStyle(.borderedProminent)
                 .accessibilityLabel("Save")
             }
-        }
-    }
-
-    @ViewBuilder
-    private func fieldBlock<Content: View>(
-        @ViewBuilder content: () -> Content,
-        error: @escaping () -> String?
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            content()
-            InlineFieldError(message: error())
-        }
-    }
-}
-
-private struct InlineFieldError: View {
-    let message: String?
-
-    var body: some View {
-        if let message {
-            Text(message)
-                .font(.caption)
-                .foregroundStyle(.red)
-                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 }
