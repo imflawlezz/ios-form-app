@@ -3,6 +3,8 @@ import SwiftUI
 struct ContactListView: View {
     @EnvironmentObject private var repository: ContactRepositoryImpl
     @Environment(\.openURL) private var openURL
+    @Environment(\.dismissSearch) private var dismissSearch
+    @Environment(\.isSearching) private var isSearching
     @State private var showDeleteAllConfirmation = false
     @State private var contactPendingDeletion: Contact?
     @State private var contactToEdit: Contact?
@@ -54,16 +56,24 @@ struct ContactListView: View {
                         .listStyle(.plain)
                     }
                 }
+                .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search contacts")
+                .onSubmit(of: .search) {
+                    dismissKeyboard()
+                }
+                .onChange(of: searchText) { oldValue, newValue in
+                    let oldTrimmed = oldValue.trimmingCharacters(in: .whitespacesAndNewlines)
+                    let newTrimmed = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard isSearching, !oldTrimmed.isEmpty, newTrimmed.isEmpty else { return }
+                    DispatchQueue.main.async {
+                        dismissSearch()
+                    }
+                }
+                .scrollDismissesKeyboard(.interactively)
+                .dismissKeyboardOnTap()
             }
         }
         .navigationTitle("Contacts")
         .navigationBarTitleDisplayMode(.large)
-        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search contacts")
-        .onSubmit(of: .search) {
-            dismissKeyboard()
-        }
-        .scrollDismissesKeyboard(.interactively)
-        .dismissKeyboardOnTap()
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 Menu {
