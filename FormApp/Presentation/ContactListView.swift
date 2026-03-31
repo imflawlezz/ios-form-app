@@ -6,9 +6,14 @@ struct ContactListView: View {
     @State private var showDeleteAllConfirmation = false
     @State private var contactPendingDeletion: Contact?
     @State private var contactToEdit: Contact?
+    @State private var searchText = ""
 
     private var sortedSections: [(letter: String, contacts: [Contact])] {
-        ContactListGrouping.sections(from: repository.contacts)
+        ContactListGrouping.sections(from: filteredContacts)
+    }
+
+    private var filteredContacts: [Contact] {
+        ContactSearch.filter(contacts: repository.contacts, query: searchText)
     }
 
     var body: some View {
@@ -16,78 +21,90 @@ struct ContactListView: View {
             if repository.contacts.isEmpty {
                 ContactListEmptyState()
             } else {
-                List {
-                    ForEach(sortedSections, id: \.letter) { section in
-                        Section {
-                            ForEach(section.contacts) { contact in
-                                NavigationLink {
-                                    ContactDetailsView(contactId: contact.id)
-                                } label: {
-                                    ContactListRow(contact: contact)
-                                }
-                                .contextMenu {
-                                    if let url = contact.dialURL {
-                                        Button {
-                                            openURL(url)
+                Group {
+                    if !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && filteredContacts.isEmpty {
+                        ContentUnavailableView("No matches", systemImage: "magnifyingglass")
+                    } else {
+                        List {
+                            ForEach(sortedSections, id: \.letter) { section in
+                                Section {
+                                    ForEach(section.contacts) { contact in
+                                        NavigationLink {
+                                            ContactDetailsView(contactId: contact.id)
                                         } label: {
-                                            Label("Call", systemImage: "phone.fill")
+                                            ContactListRow(contact: contact)
+                                        }
+                                        .contextMenu {
+                                            if let url = contact.dialURL {
+                                                Button {
+                                                    openURL(url)
+                                                } label: {
+                                                    Label("Call", systemImage: "phone.fill")
+                                                }
+                                            }
+
+                                            Button {
+                                                contactToEdit = contact
+                                            } label: {
+                                                Label("Edit", systemImage: "pencil")
+                                            }
+
+                                            Button(role: .destructive) {
+                                                contactPendingDeletion = contact
+                                            } label: {
+                                                Label("Delete", systemImage: "trash")
+                                            }
+                                        } preview: {
+                                            ContactContextPreviewCard(contact: contact)
+                                        }
+                                        .swipeActions(edge: .leading, allowsFullSwipe: contact.dialURL != nil) {
+                                            if let url = contact.dialURL {
+                                                Button {
+                                                    openURL(url)
+                                                } label: {
+                                                    Image(systemName: "phone.fill")
+                                                }
+                                                .tint(.green)
+                                                .accessibilityLabel("Call")
+                                            }
+                                        }
+                                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                            Button {
+                                                contactToEdit = contact
+                                            } label: {
+                                                Image(systemName: "pencil")
+                                            }
+                                            .tint(.indigo)
+                                            .accessibilityLabel("Edit")
+
+                                            Button(role: .destructive) {
+                                                contactPendingDeletion = contact
+                                            } label: {
+                                                Image(systemName: "trash")
+                                            }
+                                            .accessibilityLabel("Delete")
                                         }
                                     }
-
-                                    Button {
-                                        contactToEdit = contact
-                                    } label: {
-                                        Label("Edit", systemImage: "pencil")
-                                    }
-
-                                    Button(role: .destructive) {
-                                        contactPendingDeletion = contact
-                                    } label: {
-                                        Label("Delete", systemImage: "trash")
-                                    }
-                                } preview: {
-                                    ContactContextPreviewCard(contact: contact)
-                                }
-                                .swipeActions(edge: .leading, allowsFullSwipe: contact.dialURL != nil) {
-                                    if let url = contact.dialURL {
-                                        Button {
-                                            openURL(url)
-                                        } label: {
-                                            Image(systemName: "phone.fill")
-                                        }
-                                        .tint(.green)
-                                        .accessibilityLabel("Call")
-                                    }
-                                }
-                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                    Button {
-                                        contactToEdit = contact
-                                    } label: {
-                                        Image(systemName: "pencil")
-                                    }
-                                    .tint(.indigo)
-                                    .accessibilityLabel("Edit")
-
-                                    Button(role: .destructive) {
-                                        contactPendingDeletion = contact
-                                    } label: {
-                                        Image(systemName: "trash")
-                                    }
-                                    .accessibilityLabel("Delete")
+                                } header: {
+                                    Text(section.letter)
+                                        .font(.headline)
+                                        .foregroundStyle(.secondary)
                                 }
                             }
-                        } header: {
-                            Text(section.letter)
-                                .font(.headline)
-                                .foregroundStyle(.secondary)
                         }
+                        .listStyle(.plain)
                     }
                 }
-                .listStyle(.plain)
             }
         }
         .navigationTitle("Contacts")
         .navigationBarTitleDisplayMode(.large)
+        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search contacts")
+        .onSubmit(of: .search) {
+            dismissKeyboard()
+        }
+        .scrollDismissesKeyboard(.interactively)
+        .dismissKeyboardOnTap()
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 Menu {
