@@ -25,6 +25,29 @@ struct ContactListView: View {
                                 } label: {
                                     ContactListRow(contact: contact)
                                 }
+                                .contextMenu {
+                                    if let url = contact.dialURL {
+                                        Button {
+                                            openURL(url)
+                                        } label: {
+                                            Label("Call", systemImage: "phone.fill")
+                                        }
+                                    }
+
+                                    Button {
+                                        contactToEdit = contact
+                                    } label: {
+                                        Label("Edit", systemImage: "pencil")
+                                    }
+
+                                    Button(role: .destructive) {
+                                        contactPendingDeletion = contact
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                } preview: {
+                                    ContactContextPreviewCard(contact: contact)
+                                }
                                 .swipeActions(edge: .leading, allowsFullSwipe: contact.dialURL != nil) {
                                     if let url = contact.dialURL {
                                         Button {
