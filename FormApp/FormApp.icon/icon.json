@@ -1,28 +1,28 @@
 {
   "fill" : {
-    "automatic-gradient" : "display-p3:0.95580,0.92509,0.89306,1.00000"
+    "automatic-gradient" : "extended-srgb:0.38039,0.33333,0.96078,1.00000",
+    "orientation" : {
+      "start" : {
+        "x" : 0.5,
+        "y" : 1
+      },
+      "stop" : {
+        "x" : 0.5,
+        "y" : 0.3
+      }
+    }
   },
   "groups" : [
     {
       "layers" : [
         {
-          "fill-specializations" : [
-            {
-              "value" : {
-                "automatic-gradient" : "extended-srgb:1.00000,0.55294,0.15686,1.00000"
-              }
-            },
-            {
-              "appearance" : "tinted",
-              "value" : {
-                "solid" : "extended-gray:1.00000,1.00000"
-              }
-            }
-          ],
-          "image-name" : "list_bullet.svg",
-          "name" : "list_bullet",
+          "fill" : {
+            "solid" : "extended-gray:1.00000,1.00000"
+          },
+          "image-name" : "person.2.fill.svg",
+          "name" : "person.2.fill",
           "position" : {
-            "scale" : 7.5,
+            "scale" : 5,
             "translation-in-points" : [
               0,
               0
