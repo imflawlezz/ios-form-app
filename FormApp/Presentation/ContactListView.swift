@@ -90,7 +90,7 @@ struct ContactListView: View {
                 NavigationLink {
                     ContactFormView(contact: nil)
                 } label: {
-                    Image(systemName: "plus")
+                    Image(systemName: "person.badge.plus")
                 }
                 .accessibilityLabel("Add contact")
             }
