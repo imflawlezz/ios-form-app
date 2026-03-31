@@ -1,6 +1,6 @@
 import Foundation
 
-struct Contact: Identifiable {
+struct Contact: Identifiable, Codable {
     let id: UUID
 
     var firstName: String
