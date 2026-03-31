@@ -131,16 +131,14 @@ struct ContactDetailsView: View {
                     Image(systemName: "trash")
                 }
                 .tint(.red)
+                .confirmDeleteContact(
+                    isPresented: $showDeleteConfirmation,
+                    contactName: contact.displayName
+                ) {
+                    repository.remove(contact)
+                    dismiss()
+                }
             }
-        }
-        .confirmationDialog("Delete contact?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
-            Button("Delete", role: .destructive) {
-                repository.remove(contact)
-                dismiss()
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("Remove \(contact.displayName) from your contacts? This cannot be undone.")
         }
     }
 }

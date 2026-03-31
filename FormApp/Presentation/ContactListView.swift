@@ -29,62 +29,20 @@ struct ContactListView: View {
                             ForEach(sortedSections, id: \.letter) { section in
                                 Section {
                                     ForEach(section.contacts) { contact in
-                                        NavigationLink {
-                                            ContactDetailsView(contactId: contact.id)
-                                        } label: {
-                                            ContactListRow(contact: contact)
-                                        }
-                                        .contextMenu {
-                                            if let url = contact.dialURL {
-                                                Button {
-                                                    openURL(url)
-                                                } label: {
-                                                    Label("Call", systemImage: "phone.fill")
-                                                }
+                                        ContactListItem(
+                                            contact: contact,
+                                            openURL: openURL,
+                                            onEdit: { contactToEdit = contact },
+                                            onRequestDelete: { contactPendingDeletion = contact },
+                                            isDeleteDialogPresented: Binding(
+                                                get: { contactPendingDeletion?.id == contact.id },
+                                                set: { if !$0 { contactPendingDeletion = nil } }
+                                            ),
+                                            onConfirmDelete: {
+                                                repository.remove(contact)
+                                                contactPendingDeletion = nil
                                             }
-
-                                            Button {
-                                                contactToEdit = contact
-                                            } label: {
-                                                Label("Edit", systemImage: "pencil")
-                                            }
-
-                                            Button(role: .destructive) {
-                                                contactPendingDeletion = contact
-                                            } label: {
-                                                Label("Delete", systemImage: "trash")
-                                            }
-                                        } preview: {
-                                            ContactContextPreviewCard(contact: contact)
-                                        }
-                                        .swipeActions(edge: .leading, allowsFullSwipe: contact.dialURL != nil) {
-                                            if let url = contact.dialURL {
-                                                Button {
-                                                    openURL(url)
-                                                } label: {
-                                                    Image(systemName: "phone.fill")
-                                                }
-                                                .tint(.green)
-                                                .accessibilityLabel("Call")
-                                            }
-                                        }
-                                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                            Button {
-                                                contactToEdit = contact
-                                            } label: {
-                                                Image(systemName: "pencil")
-                                            }
-                                            .tint(.indigo)
-                                            .accessibilityLabel("Edit")
-
-                                            Button {
-                                                contactPendingDeletion = contact
-                                            } label: {
-                                                Image(systemName: "trash")
-                                            }
-                                            .tint(.red)
-                                            .accessibilityLabel("Delete")
-                                        }
+                                        )
                                     }
                                 } header: {
                                     Text(section.letter)
@@ -122,10 +80,14 @@ struct ContactListView: View {
                     } label: {
                         Label("Delete all contacts", systemImage: "trash")
                     }
+                    .tint(.red)
                 } label: {
                     Image(systemName: "ellipsis")
                 }
                 .accessibilityLabel("More actions")
+                .confirmDeleteAllContacts(isPresented: $showDeleteAllConfirmation) {
+                    repository.removeAll()
+                }
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 NavigationLink {
@@ -136,43 +98,85 @@ struct ContactListView: View {
                 .accessibilityLabel("Add contact")
             }
         }
-        .confirmationDialog("Delete all contacts?", isPresented: $showDeleteAllConfirmation, titleVisibility: .visible) {
-            Button("Delete all", role: .destructive) {
-                repository.removeAll()
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("This cannot be undone.")
-        }
-        .confirmationDialog(
-            "Delete contact?",
-            isPresented: Binding(
-                get: { contactPendingDeletion != nil },
-                set: { if !$0 { contactPendingDeletion = nil } }
-            ),
-            titleVisibility: .visible
-        ) {
-            Button("Delete", role: .destructive) {
-                if let contact = contactPendingDeletion {
-                    repository.remove(contact)
-                }
-                contactPendingDeletion = nil
-            }
-            Button("Cancel", role: .cancel) {
-                contactPendingDeletion = nil
-            }
-        } message: {
-            if let contact = contactPendingDeletion {
-                Text("Remove \(contact.displayName) from your contacts? This cannot be undone.")
-            } else {
-                Text("This contact will be removed. This cannot be undone.")
-            }
-        }
         .sheet(item: $contactToEdit) { contact in
             NavigationStack {
                 ContactFormView(contact: contact)
                     .environmentObject(repository)
             }
+        }
+    }
+}
+
+private struct ContactListItem: View {
+    let contact: Contact
+    let openURL: OpenURLAction
+    let onEdit: () -> Void
+    let onRequestDelete: () -> Void
+    let isDeleteDialogPresented: Binding<Bool>
+    let onConfirmDelete: () -> Void
+
+    var body: some View {
+        NavigationLink {
+            ContactDetailsView(contactId: contact.id)
+        } label: {
+            ContactListRow(contact: contact)
+        }
+        .contextMenu {
+            if let url = contact.dialURL {
+                Button {
+                    openURL(url)
+                } label: {
+                    Label("Call", systemImage: "phone.fill")
+                }
+            }
+
+            Button {
+                onEdit()
+            } label: {
+                Label("Edit", systemImage: "pencil")
+            }
+
+            Button(role: .destructive) {
+                onRequestDelete()
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        } preview: {
+            ContactContextPreviewCard(contact: contact)
+        }
+        .swipeActions(edge: .leading, allowsFullSwipe: contact.dialURL != nil) {
+            if let url = contact.dialURL {
+                Button {
+                    openURL(url)
+                } label: {
+                    Image(systemName: "phone.fill")
+                }
+                .tint(.green)
+                .accessibilityLabel("Call")
+            }
+        }
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            Button {
+                onEdit()
+            } label: {
+                Image(systemName: "pencil")
+            }
+            .tint(.indigo)
+            .accessibilityLabel("Edit")
+
+            Button {
+                onRequestDelete()
+            } label: {
+                Image(systemName: "trash")
+            }
+            .tint(.red)
+            .accessibilityLabel("Delete")
+        }
+        .confirmDeleteContact(
+            isPresented: isDeleteDialogPresented,
+            contactName: contact.displayName
+        ) {
+            onConfirmDelete()
         }
     }
 }
