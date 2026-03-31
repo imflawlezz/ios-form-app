@@ -10,6 +10,14 @@ import SwiftUI
 final class ContactStore: ObservableObject, ContactRepository {
     @Published private(set) var contacts: [Contact] = []
 
+    init() {
+        contacts = ContactPersistence.load()
+    }
+
+    private func persist() {
+        ContactPersistence.save(contacts)
+    }
+
     func contact(withId id: UUID) -> Contact? {
         contacts.first { $0.id == id }
     }
@@ -26,18 +34,22 @@ final class ContactStore: ObservableObject, ContactRepository {
 
     func add(_ contact: Contact) {
         contacts.append(contact)
+        persist()
     }
 
     func remove(_ contact: Contact) {
         contacts.removeAll { $0.id == contact.id }
+        persist()
     }
 
     func remove(at offsets: IndexSet) {
         contacts.remove(atOffsets: offsets)
+        persist()
     }
 
     func removeAll() {
         contacts.removeAll()
+        persist()
     }
 
     func addSampleContacts() {
@@ -71,10 +83,12 @@ final class ContactStore: ObservableObject, ContactRepository {
                 doNotify: s.9
             ))
         }
+        persist()
     }
 
     func update(_ contact: Contact) {
         guard let index = contacts.firstIndex(where: { $0.id == contact.id }) else { return }
         contacts[index] = contact
+        persist()
     }
 }
