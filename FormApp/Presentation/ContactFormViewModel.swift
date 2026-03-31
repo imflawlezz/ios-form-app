@@ -1,10 +1,3 @@
-//
-//  ContactFormViewModel.swift
-//  FormApp
-//
-//  Created by Yahor Artsiomchyk on 14/03/2026.
-//
-
 import Combine
 import Foundation
 
@@ -129,7 +122,6 @@ final class ContactFormViewModel: ObservableObject {
         if showValidationAfterFailedSave || isOverLimit { return message }
         return nil
     }
-
 
     func noteFirstNameChanged() {
         if Contact.hasContent(firstName) { firstNameHadNonEmptyInput = true }

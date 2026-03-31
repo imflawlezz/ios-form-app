@@ -1,10 +1,3 @@
-//
-//  ContactAvatarView.swift
-//  FormApp
-//
-//  Created by Yahor Artsiomchyk on 31/03/2026.
-//
-
 import SwiftUI
 
 struct ContactAvatarView: View {

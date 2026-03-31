@@ -18,7 +18,6 @@ struct Contact: Identifiable, Codable {
 
     var notes: String
     var doNotify: Bool
-    
 
     init(
         id: UUID = UUID(),

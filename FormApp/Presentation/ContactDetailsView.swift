@@ -1,21 +1,14 @@
-//
-//  ContactDetailsView.swift
-//  FormApp
-//
-//  Created by Yahor Artsiomchyk on 14/03/2026.
-//
-
 import SwiftUI
 
 struct ContactDetailsView: View {
-    @EnvironmentObject private var store: ContactStore
+    @EnvironmentObject private var repository: ContactRepositoryImpl
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     @State private var showDeleteConfirmation = false
     let contactId: UUID
 
     private var contact: Contact? {
-        store.contact(withId: contactId)
+        repository.contact(withId: contactId)
     }
 
     var body: some View {
@@ -142,7 +135,7 @@ struct ContactDetailsView: View {
         }
         .confirmationDialog("Delete contact?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
             Button("Delete", role: .destructive) {
-                store.remove(contact)
+                repository.remove(contact)
                 dismiss()
             }
             Button("Cancel", role: .cancel) {}
@@ -169,7 +162,7 @@ private struct DetailRow: View {
 }
 
 #Preview {
-    let store = ContactStore()
+    let repository = ContactRepositoryImpl()
     let sample = Contact(
         firstName: "Jane",
         lastName: "Doe",
@@ -182,10 +175,10 @@ private struct DetailRow: View {
         zip: "10001",
         notes: "Sample note"
     )
-    store.add(sample)
+    repository.add(sample)
 
     return NavigationStack {
         ContactDetailsView(contactId: sample.id)
-            .environmentObject(store)
+            .environmentObject(repository)
     }
 }

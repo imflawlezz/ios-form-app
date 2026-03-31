@@ -1,26 +1,23 @@
-//
-//  ContactListView.swift
-//  FormApp
-//
-//  Created by Yahor Artsiomchyk on 14/03/2026.
-//
-
 import SwiftUI
 
 struct ContactListView: View {
-    @EnvironmentObject private var store: ContactStore
+    @EnvironmentObject private var repository: ContactRepositoryImpl
     @Environment(\.openURL) private var openURL
     @State private var showDeleteAllConfirmation = false
     @State private var contactPendingDeletion: Contact?
     @State private var contactToEdit: Contact?
 
+    private var sortedSections: [(letter: String, contacts: [Contact])] {
+        ContactListGrouping.sections(from: repository.contacts)
+    }
+
     var body: some View {
         Group {
-            if store.contacts.isEmpty {
+            if repository.contacts.isEmpty {
                 ContactListEmptyState()
             } else {
                 List {
-                    ForEach(store.sortedSections, id: \.letter) { section in
+                    ForEach(sortedSections, id: \.letter) { section in
                         Section {
                             ForEach(section.contacts) { contact in
                                 NavigationLink {
@@ -72,12 +69,12 @@ struct ContactListView: View {
             ToolbarItem(placement: .navigationBarLeading) {
                 Menu {
                     Button {
-                        store.addSampleContacts()
+                        repository.addSampleContacts()
                     } label: {
                         Label("Add sample contacts", systemImage: "person.2.badge.plus")
                     }
                     Button(role: .destructive) {
-                        guard !store.contacts.isEmpty else {
+                        guard !repository.contacts.isEmpty else {
                             return
                         }
                         showDeleteAllConfirmation = true
@@ -100,7 +97,7 @@ struct ContactListView: View {
         }
         .confirmationDialog("Delete all contacts?", isPresented: $showDeleteAllConfirmation, titleVisibility: .visible) {
             Button("Delete all", role: .destructive) {
-                store.removeAll()
+                repository.removeAll()
             }
             Button("Cancel", role: .cancel) {}
         } message: {
@@ -116,7 +113,7 @@ struct ContactListView: View {
         ) {
             Button("Delete", role: .destructive) {
                 if let contact = contactPendingDeletion {
-                    store.remove(contact)
+                    repository.remove(contact)
                 }
                 contactPendingDeletion = nil
             }
@@ -133,7 +130,7 @@ struct ContactListView: View {
         .sheet(item: $contactToEdit) { contact in
             NavigationStack {
                 ContactFormView(contact: contact)
-                    .environmentObject(store)
+                    .environmentObject(repository)
             }
         }
     }
@@ -233,6 +230,6 @@ private struct ContactListRowTitle: View {
 #Preview {
     NavigationStack {
         ContactListView()
-            .environmentObject(ContactStore())
+            .environmentObject(ContactRepositoryImpl())
     }
 }

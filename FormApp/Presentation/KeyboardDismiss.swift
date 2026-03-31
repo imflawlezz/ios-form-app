@@ -1,10 +1,3 @@
-//
-//  KeyboardDismiss.swift
-//  FormApp
-//
-//  Created by Yahor Artsiomchyk on 14/03/2026.
-//
-
 import SwiftUI
 import UIKit
 
@@ -92,7 +85,6 @@ private struct KeyboardDismissOnTapOutside: UIViewRepresentable {
 }
 
 extension View {
-
     func dismissKeyboardOnTap() -> some View {
         background(KeyboardDismissOnTapOutside().allowsHitTesting(false))
     }

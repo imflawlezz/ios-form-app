@@ -1,14 +1,7 @@
-//
-//  ContactFormView.swift
-//  FormApp
-//
-//  Created by Yahor Artsiomchyk on 14/03/2026.
-//
-
 import SwiftUI
 
 struct ContactFormView: View {
-    @EnvironmentObject private var store: ContactStore
+    @EnvironmentObject private var repository: ContactRepositoryImpl
     @Environment(\.dismiss) private var dismiss
 
     @StateObject private var viewModel: ContactFormViewModel
@@ -152,7 +145,7 @@ struct ContactFormView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
-                    if viewModel.commitSaveAttempt(using: store) {
+                    if viewModel.commitSaveAttempt(using: repository) {
                         dismiss()
                     }
                 } label: {
@@ -179,6 +172,6 @@ struct ContactFormView: View {
             zip: "10001",
             notes: "Sample note"
         ))
-        .environmentObject(ContactStore())
+        .environmentObject(ContactRepositoryImpl())
     }
 }

@@ -77,8 +77,6 @@ enum ContactFormValidation {
         return "You've hit the \(notesMaxLength)-character limit."
     }
 
-    // MARK: - Rules
-
     static func isValidEmailFormat(_ string: String) -> Bool {
         let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return true }
