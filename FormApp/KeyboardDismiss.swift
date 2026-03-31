@@ -17,6 +17,21 @@ func dismissKeyboard() {
     )
 }
 
+func advanceFocus<T: Hashable>(order: [T], current: T, setFocus: (T?) -> Void) {
+    guard let idx = order.firstIndex(of: current) else {
+        setFocus(nil)
+        dismissKeyboard()
+        return
+    }
+    let nextIndex = idx + 1
+    if nextIndex < order.count {
+        setFocus(order[nextIndex])
+    } else {
+        setFocus(nil)
+        dismissKeyboard()
+    }
+}
+
 private struct KeyboardDismissOnTapOutside: UIViewRepresentable {
     final class Coordinator: NSObject, UIGestureRecognizerDelegate {
         weak var window: UIWindow?
