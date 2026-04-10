@@ -234,11 +234,14 @@ struct ContactFormView: View {
                 }
             }
         }
-        .sheet(isPresented: $isShowingCamera) {
-            ImagePicker(source: .camera) { image in
-                if let jpeg = image.jpegData(compressionQuality: 0.85) {
-                    viewModel.setAvatarData(jpeg)
-                }
+        .fullScreenCover(isPresented: $isShowingCamera) {
+            CameraView(onCapture: { data in
+                viewModel.setAvatarData(data)
+                isShowingCamera = false
+            })
+            .ignoresSafeArea()
+            .onDisappear {
+                isShowingCamera = false
             }
         }
         .toolbar {
