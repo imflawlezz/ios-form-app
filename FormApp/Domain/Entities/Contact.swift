@@ -18,6 +18,7 @@ struct Contact: Identifiable, Codable {
 
     var notes: String
     var doNotify: Bool
+    var avatarData: Data?
 
     init(
         id: UUID = UUID(),
@@ -31,7 +32,8 @@ struct Contact: Identifiable, Codable {
         city: String,
         zip: String,
         notes: String,
-        doNotify: Bool = false
+        doNotify: Bool = false,
+        avatarData: Data? = nil
     ) {
         self.id = id
         self.firstName = firstName
@@ -45,5 +47,6 @@ struct Contact: Identifiable, Codable {
         self.zip = zip
         self.notes = notes
         self.doNotify = doNotify
+        self.avatarData = avatarData
     }
 }
