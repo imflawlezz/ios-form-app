@@ -256,6 +256,8 @@
 				DEVELOPMENT_TEAM = AW9Z462NX3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Allow camera access to take a profile photo.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Allow photo library access to select a profile photo.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -289,6 +291,8 @@
 				DEVELOPMENT_TEAM = AW9Z462NX3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Allow camera access to take a profile photo.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Allow photo library access to select a profile photo.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
