@@ -9,7 +9,7 @@ import SwiftUI
 
 @main
 struct FormAppApp: App {
-    @StateObject private var contactRepository = ContactRepositoryImpl()
+    @StateObject private var contactRepository = CoreDataContactRepository()
 
     var body: some Scene {
         WindowGroup {
