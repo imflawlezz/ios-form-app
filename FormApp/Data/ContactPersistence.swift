@@ -8,7 +8,7 @@ import os
 
 private let persistenceLog = Logger(subsystem: "FormApp", category: "ContactPersistence")
 
-enum ContactPersistence {
+class ContactPersistence {
     private static let fileName = "contacts.json"
     private static let subdirectory = "FormApp"
 
