@@ -14,15 +14,19 @@ final class ContactFormViewModel: ObservableObject {
     @Published var notes: String
     @Published var doNotify: Bool
     @Published var birthdate: Date?
+    @Published var avatarData: Data?
 
     @Published private(set) var showValidationAfterFailedSave = false
     @Published private(set) var firstNameHadNonEmptyInput = false
     @Published private(set) var phoneHadNonEmptyInput = false
 
     private let existingContactId: UUID?
+    let draftId: UUID
+    private let originalAvatarData: Data?
 
     init(contact: Contact? = nil) {
         existingContactId = contact?.id
+        draftId = contact?.id ?? UUID()
         firstName = contact?.firstName ?? ""
         lastName = contact?.lastName ?? ""
         gender = contact?.gender
@@ -34,6 +38,8 @@ final class ContactFormViewModel: ObservableObject {
         notes = contact?.notes ?? ""
         doNotify = contact?.doNotify ?? false
         birthdate = contact?.birthdate
+        avatarData = contact?.avatarData
+        originalAvatarData = contact?.avatarData
 
         if let contact {
             if Contact.hasContent(contact.firstName) { firstNameHadNonEmptyInput = true }
@@ -140,9 +146,13 @@ final class ContactFormViewModel: ObservableObject {
         return false
     }
 
+    func setAvatarData(_ data: Data?) {
+        avatarData = data
+    }
+
     private func save(using repository: ContactRepository) -> Bool {
         let saved = Contact(
-            id: existingContactId ?? UUID(),
+            id: existingContactId ?? draftId,
             firstName: firstName,
             lastName: lastName,
             birthdate: birthdate,
@@ -153,7 +163,8 @@ final class ContactFormViewModel: ObservableObject {
             city: city,
             zip: zip,
             notes: notes,
-            doNotify: doNotify
+            doNotify: doNotify,
+            avatarData: avatarData
         )
 
         if isEditing {

@@ -1,4 +1,6 @@
+import PhotosUI
 import SwiftUI
+import UIKit
 
 struct ContactFormView: View {
     @EnvironmentObject private var repository: ContactRepositoryImpl
@@ -6,6 +8,8 @@ struct ContactFormView: View {
 
     @StateObject private var viewModel: ContactFormViewModel
     @FocusState private var focusedField: ContactFormTextField?
+    @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var isShowingCamera = false
 
     init(contact: Contact? = nil) {
         _viewModel = StateObject(wrappedValue: ContactFormViewModel(contact: contact))
@@ -13,6 +17,78 @@ struct ContactFormView: View {
 
     var body: some View {
         Form {
+            Section {
+                HStack(alignment: .center, spacing: 6) {
+                    ContactAvatarView(
+                        contact: Contact(
+                            id: viewModel.draftId,
+                            firstName: viewModel.firstName,
+                            lastName: viewModel.lastName,
+                            birthdate: viewModel.birthdate,
+                            gender: viewModel.gender,
+                            email: viewModel.email,
+                            phone: viewModel.phone,
+                            address: viewModel.address,
+                            city: viewModel.city,
+                            zip: viewModel.zip,
+                            notes: viewModel.notes,
+                            doNotify: viewModel.doNotify,
+                            avatarData: viewModel.avatarData
+                        ),
+                        size: viewModel.isEditing ? 88 : 76
+                    )
+
+                    Spacer(minLength: 0)
+
+                    HStack(spacing: 12) {
+                        PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                            PhotoIconActionButton(
+                                systemImage: "photo.on.rectangle.angled",
+                                tint: .accentColor,
+                                fill: Color.accentColor.opacity(0.18)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .frame(maxWidth: .infinity)
+                        .contentShape(Rectangle())
+                        .accessibilityLabel("Choose photo")
+
+                        Button {
+                            isShowingCamera = true
+                        } label: {
+                            PhotoIconActionButton(
+                                systemImage: "camera",
+                                tint: .accentColor,
+                                fill: Color.accentColor.opacity(0.18)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .frame(maxWidth: .infinity)
+                        .contentShape(Rectangle())
+                        .accessibilityLabel("Take photo")
+                        .disabled(!UIImagePickerController.isSourceTypeAvailable(.camera))
+
+                        if viewModel.avatarData != nil {
+                            Button(role: .destructive) {
+                                viewModel.setAvatarData(nil)
+                            } label: {
+                                PhotoIconActionButton(
+                                    systemImage: "trash",
+                                    tint: .red,
+                                    fill: Color.red.opacity(0.16)
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            .frame(maxWidth: .infinity)
+                            .contentShape(Rectangle())
+                            .accessibilityLabel("Remove photo")
+                        }
+                    }
+                }
+            } header: {
+                Text("Photo")
+            }
+
             Section {
                 ContactFormFieldWithError(message: viewModel.visibleFirstNameError) {
                     TextField("First Name", text: $viewModel.firstName)
@@ -142,6 +218,29 @@ struct ContactFormView: View {
         .onChange(of: viewModel.phone) { _, _ in
             viewModel.notePhoneChanged()
         }
+        .onChange(of: selectedPhotoItem) { _, newValue in
+            guard let newValue else { return }
+            Task {
+                if let data = try? await newValue.loadTransferable(type: Data.self),
+                   let image = UIImage(data: data) {
+                    if let jpeg = image.jpegData(compressionQuality: 0.85) {
+                        await MainActor.run {
+                            viewModel.setAvatarData(jpeg)
+                        }
+                    }
+                }
+                await MainActor.run {
+                    selectedPhotoItem = nil
+                }
+            }
+        }
+        .sheet(isPresented: $isShowingCamera) {
+            ImagePicker(source: .camera) { image in
+                if let jpeg = image.jpegData(compressionQuality: 0.85) {
+                    viewModel.setAvatarData(jpeg)
+                }
+            }
+        }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
@@ -155,6 +254,21 @@ struct ContactFormView: View {
                 .accessibilityLabel("Save")
             }
         }
+    }
+}
+
+private struct PhotoIconActionButton: View {
+    let systemImage: String
+    let tint: Color
+    let fill: Color
+
+    var body: some View {
+        Image(systemName: systemImage)
+            .font(.system(size: 18, weight: .semibold))
+            .foregroundStyle(tint)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(fill, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 }
 
