@@ -3,7 +3,7 @@ import SwiftUI
 import UIKit
 
 struct ContactFormView: View {
-    @EnvironmentObject private var repository: ContactRepositoryImpl
+    @EnvironmentObject private var repository: CoreDataContactRepository
     @Environment(\.dismiss) private var dismiss
 
     @StateObject private var viewModel: ContactFormViewModel
@@ -289,6 +289,6 @@ private struct PhotoIconActionButton: View {
             zip: "10001",
             notes: "Sample note"
         ))
-        .environmentObject(ContactRepositoryImpl())
+        .environmentObject(CoreDataContactRepository())
     }
 }

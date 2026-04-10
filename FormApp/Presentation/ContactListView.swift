@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ContactListView: View {
-    @EnvironmentObject private var repository: ContactRepositoryImpl
+    @EnvironmentObject private var repository: CoreDataContactRepository
     @Environment(\.openURL) private var openURL
     @Environment(\.dismissSearch) private var dismissSearch
     @Environment(\.isSearching) private var isSearching
@@ -285,6 +285,6 @@ private struct ContactListRowTitle: View {
 #Preview {
     NavigationStack {
         ContactListView()
-            .environmentObject(ContactRepositoryImpl())
+            .environmentObject(CoreDataContactRepository())
     }
 }

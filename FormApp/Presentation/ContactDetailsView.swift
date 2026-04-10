@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ContactDetailsView: View {
-    @EnvironmentObject private var repository: ContactRepositoryImpl
+    @EnvironmentObject private var repository: CoreDataContactRepository
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     @State private var showDeleteConfirmation = false
@@ -160,7 +160,7 @@ private struct DetailRow: View {
 }
 
 #Preview {
-    let repository = ContactRepositoryImpl()
+    let repository = CoreDataContactRepository()
     let sample = Contact(
         firstName: "Jane",
         lastName: "Doe",
