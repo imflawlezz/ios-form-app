@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24512" systemVersion="25E246" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+    <entity name="CDContact" representedClassName="CDContact" syncable="YES" codeGenerationType="class">
+        <attribute name="address" attributeType="String" defaultValueString=""/>
+        <attribute name="avatarData" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
+        <attribute name="birthdate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="city" attributeType="String" defaultValueString=""/>
+        <attribute name="doNotify" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="email" attributeType="String" defaultValueString=""/>
+        <attribute name="firstName" attributeType="String" defaultValueString=""/>
+        <attribute name="genderRaw" optional="YES" attributeType="String"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="lastName" attributeType="String" defaultValueString=""/>
+        <attribute name="notes" attributeType="String" defaultValueString=""/>
+        <attribute name="phone" attributeType="String" defaultValueString=""/>
+        <attribute name="zip" attributeType="String" defaultValueString=""/>
+    </entity>
+</model>
